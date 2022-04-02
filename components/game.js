@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import {
   Button, Row, Typography, Col, List,
 } from 'antd';
@@ -8,6 +8,7 @@ import {
 } from '../lib/dices';
 import BoardItem from './board-item';
 import GameInput from './game-input';
+import fetcher from '../lib/fetcher';
 
 const Winner = ({ board }) => {
   const winner = findWinner(board);
@@ -44,6 +45,26 @@ function Game() {
       evaluatedBoard,
     }]);
   };
+
+  useEffect(() => {
+    const sendHistory = async () => {
+      try {
+        await fetcher('/api/histories', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ winner: findWinner(board), histories }),
+        });
+      } catch (error) {
+        console.log(error);
+      }
+    };
+
+    if (isDone) {
+      sendHistory();
+    }
+  }, [isDone]);
 
   return (
     <div>

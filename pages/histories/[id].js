@@ -2,13 +2,15 @@ import Head from 'next/head';
 import { withIronSessionSsr } from 'iron-session/next';
 import { Layout } from 'antd';
 
-import sessionOptions from '../lib/session';
-import Header from '../components/header';
-import fetcher from '../lib/fetcher';
-import constants from '../lib/constants';
-import HistoryList from '../components/historyList';
+import sessionOptions from '../../lib/session';
+import Header from '../../components/header';
+import History from '../../components/history';
+import constants from '../../lib/constants';
+import fetcher from '../../lib/fetcher';
 
-export default function Login({ user, histories }) {
+export default function HistoryDetail({
+  user, winner, histories, date,
+}) {
   return (
     <Layout className="layout">
       <Head>
@@ -21,7 +23,7 @@ export default function Login({ user, histories }) {
       </Layout.Header>
       <Layout.Content style={{ padding: '0 50px', marginTop: 16 }}>
         <div className="site-layout-content">
-          <HistoryList histories={histories} />
+          <History winner={winner} date={date} histories={histories} />
         </div>
       </Layout.Content>
       <Layout.Footer style={{ textAlign: 'center' }}>
@@ -39,7 +41,7 @@ export default function Login({ user, histories }) {
   );
 }
 
-export const getServerSideProps = withIronSessionSsr(async ({ req }) => {
+export const getServerSideProps = withIronSessionSsr(async ({ req, query }) => {
   const { user } = req.session;
 
   if (!user?.isLoggedIn) {
@@ -51,7 +53,7 @@ export const getServerSideProps = withIronSessionSsr(async ({ req }) => {
     };
   }
 
-  const histories = await fetcher(`${constants.BASE_URL}/histories`, {
+  const { winner = {}, histories = [], modifiedAt = new Date() } = await fetcher(`${constants.BASE_URL}/histories/${query.id}`, {
     headers: {
       Authorization: `Bearer ${user.accessToken}`,
     },
@@ -60,7 +62,9 @@ export const getServerSideProps = withIronSessionSsr(async ({ req }) => {
   return {
     props: {
       user,
+      winner,
       histories,
+      modifiedAt,
     },
   };
 }, sessionOptions);
