@@ -3,16 +3,31 @@ import {
   Form, Input, Button, Row, Typography, Col,
 } from 'antd';
 import Link from 'next/link';
+import { useRouter } from 'next/router';
+import fetcher from '../lib/fetcher';
 
 function LoginForm() {
+  const { push } = useRouter();
   const [isLogin, showLogin] = useState(false);
 
-  const onFinish = (values) => {
-    console.log('Success:', values);
+  const onFinish = async (values) => {
+    try {
+      const user = await fetcher('/api/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(values),
+      });
+
+      if (user.isLoggedIn) {
+        push('/home');
+      }
+    } catch (error) {
+      console.log(error.data);
+    }
   };
 
-  const onFinishFailed = (errorInfo) => {
-    console.log('Failed:', errorInfo);
+  const onFinishFailed = () => {
+    // TODO implement snackbar
   };
 
   return (
@@ -71,7 +86,7 @@ function LoginForm() {
       <Row justify="center">
         <Col>
           <Typography.Text onClick={() => showLogin((prevIsLogin) => !prevIsLogin)}>
-            <Link href="/#login">{isLogin ? 'Register here' : 'Already registered? Login here'}</Link>
+            <Link href="/#">{isLogin ? 'Register here' : 'Already registered? Login here'}</Link>
           </Typography.Text>
         </Col>
       </Row>

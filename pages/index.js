@@ -3,7 +3,6 @@ import { withIronSessionSsr } from 'iron-session/next';
 import { Layout } from 'antd';
 
 import sessionOptions from '../lib/session';
-import constants from '../lib/constants';
 import LoginForm from '../components/login-form';
 import Header from '../components/header';
 
@@ -42,7 +41,7 @@ export const getServerSideProps = withIronSessionSsr(async ({ req }) => {
   if (req.session.user?.isLoggedIn) {
     return {
       redirect: {
-        destination: `${constants.BASE_URL}/home`,
+        destination: '/home',
         permanent: false,
       },
     };
