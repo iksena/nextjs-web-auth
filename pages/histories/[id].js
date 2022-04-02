@@ -64,7 +64,7 @@ export const getServerSideProps = withIronSessionSsr(async ({ req, query }) => {
       user,
       winner,
       histories,
-      modifiedAt,
+      date: modifiedAt,
     },
   };
 }, sessionOptions);
