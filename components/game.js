@@ -3,9 +3,11 @@ import {
   Form, Input, Button, Row, Typography, Col, Card, List,
 } from 'antd';
 
-import { evaluateBoard, initiateBoard, playDiceOnBoard } from '../lib/dices';
+import {
+  evaluateBoard, findWinner, initiateBoard, playDiceOnBoard,
+} from '../lib/dices';
 
-function GameInput({ onFirstPlay }) {
+function GameInput({ onFirstPlay, histories }) {
   return (
     <Form
       name="basic"
@@ -28,6 +30,7 @@ function GameInput({ onFirstPlay }) {
       >
         <Input />
       </Form.Item>
+      {histories.length === 0 && (
       <Form.Item
         wrapperCol={{ offset: 15 }}
       >
@@ -35,6 +38,7 @@ function GameInput({ onFirstPlay }) {
           Start Playing
         </Button>
       </Form.Item>
+      )}
     </Form>
   );
 }
@@ -46,23 +50,31 @@ function BoardItem({
   return (
     <List.Item>
       <Card size="small" title={`Play #${index}`} style={{ width: 300 }}>
-        {board.map((player, number) => <p key={number}>{`Player #${number} (${player.score}): ${player.dices}`}</p>)}
+        {board.map((player, number) => <p key={number}>{`Player #${number + 1} (${player.score}): ${player.dices}`}</p>)}
       </Card>
       <Card size="small" title={`Evaluation #${index}`} style={{ width: 300 }}>
-        {evaluatedBoard.map((player, number) => <p key={number}>{`Player #${number} (${player.score}): ${player.dices}`}</p>)}
+        {evaluatedBoard.map((player, number) => <p key={number}>{`Player #${number + 1} (${player.score}): ${player.dices}`}</p>)}
       </Card>
     </List.Item>
   );
 }
 
+const Winner = ({ board }) => {
+  const winner = findWinner(board);
+
+  return `Player #${winner.player} wins with score: ${winner.score}`;
+};
+
 function Game() {
   const [board, setBoard] = useState();
   const [histories, setHistories] = useState([]);
+  const [isDone, setDone] = useState(false);
 
   const onFirstPlay = useCallback((values) => {
     const { players, dices } = values;
     const newBoard = initiateBoard(Number(players), Number(dices));
-    const evaluatedBoard = evaluateBoard(newBoard);
+    const [evaluatedBoard, done] = evaluateBoard(newBoard);
+    setDone(done);
     setBoard(evaluatedBoard);
     setHistories((prevHistories) => [...prevHistories, {
       index: 1,
@@ -73,7 +85,8 @@ function Game() {
 
   const onPlay = () => {
     const newBoard = playDiceOnBoard(board);
-    const evaluatedBoard = evaluateBoard(newBoard);
+    const [evaluatedBoard, done] = evaluateBoard(newBoard);
+    setDone(done);
     setBoard(evaluatedBoard);
     setHistories((prevHistories) => [...prevHistories, {
       index: prevHistories.length + 1,
@@ -89,7 +102,7 @@ function Game() {
           <Typography.Title>Play Dice</Typography.Title>
         </Col>
       </Row>
-      <GameInput onFirstPlay={onFirstPlay} />
+      <GameInput onFirstPlay={onFirstPlay} histories={histories} />
       <List
         grid={{ gutter: 16, column: 4 }}
         dataSource={histories}
@@ -97,7 +110,12 @@ function Game() {
           <BoardItem history={history} />
         )}
       />
-      <Button type="default" loading={false} onClick={onPlay}>Play</Button>
+      <Row justify="center">
+        <Col>
+          {(histories.length > 0 && !isDone) && <Button type="primary" onClick={onPlay}>Play</Button>}
+        </Col>
+      </Row>
+      {isDone && <Winner board={board} />}
     </div>
   );
 }
