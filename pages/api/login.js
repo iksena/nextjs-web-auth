@@ -7,10 +7,12 @@ import constants from '../../lib/constants';
 export default withIronSessionApiRoute(async (req, res) => {
   if (req.method === 'POST') {
     try {
-      const user = await fetcher(`${constants.BASE_URL}/login`, {
+      const { body } = req;
+      const path = body.email ? 'register' : 'login';
+      const user = await fetcher(`${constants.BASE_URL}/${path}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(req.body),
+        body: JSON.stringify(body),
       });
 
       req.session.user = { ...user, isLoggedIn: true };
